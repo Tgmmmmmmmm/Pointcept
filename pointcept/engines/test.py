@@ -5,6 +5,9 @@ Author: Xiaoyang Wu (xiaoyang.wu.cs@gmail.com)
 Please cite our work if the code is helpful to you.
 """
 
+from pointcept.utils.registry import Registry
+TESTERS = Registry("testers")
+
 import os
 import time
 import numpy as np
@@ -17,7 +20,7 @@ import torch.utils.data
 from .defaults import create_ddp_model
 import pointcept.utils.comm as comm
 from pointcept.datasets import build_dataset, collate_fn
-from pointcept.models import build_model
+
 from pointcept.utils.logger import get_root_logger
 from pointcept.utils.registry import Registry
 from pointcept.utils.misc import (
@@ -28,7 +31,6 @@ from pointcept.utils.misc import (
 )
 
 
-TESTERS = Registry("testers")
 
 
 class TesterBase:
@@ -56,6 +58,7 @@ class TesterBase:
             self.test_loader = test_loader
 
     def build_model(self):
+        from pointcept.models import build_model
         model = build_model(self.cfg.model)
         n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
         self.logger.info(f"Num params: {n_parameters}")
@@ -126,6 +129,11 @@ class SemSegTester(TesterBase):
 
         save_path = os.path.join(self.cfg.save_path, "result")
         make_dirs(save_path)
+
+        # 创建保存概率的文件夹
+        prob_save_path = os.path.join(save_path, "probabilities")
+        make_dirs(prob_save_path)
+
         # create submit folder only on main process
         if (
             self.cfg.data.test.type == "ScanNetDataset"
@@ -166,9 +174,11 @@ class SemSegTester(TesterBase):
             data_name = data_dict.pop("name")
             print(f"Rank {comm.get_rank()}, Data {data_name}")
             pred_save_path = os.path.join(save_path, "{}_pred.npy".format(data_name))
+            prob_save_file = os.path.join(prob_save_path, "{}_prob.npy".format(data_name))  # 新增概率保存路径
+
             if os.path.isfile(pred_save_path):
                 logger.info(
-                    "{}/{}: {}, loaded pred and label.".format(
+                    "{}/{}: {}, loaded pred label.".format(
                         idx + 1, len(self.test_loader), data_name
                     )
                 )
@@ -176,7 +186,11 @@ class SemSegTester(TesterBase):
                 if "origin_segment" in data_dict.keys():
                     segment = data_dict["origin_segment"]
             else:
+                # 初始化预测和概率矩阵
                 pred = torch.zeros((segment.size, self.cfg.data.num_classes)).cuda()
+                prob = torch.zeros((segment.size, self.cfg.data.num_classes)).cuda()  # 新增概率矩阵
+
+
                 for i in range(len(fragment_list)):
                     fragment_batch_size = 1
                     s_i, e_i = i * fragment_batch_size, min(
@@ -190,11 +204,14 @@ class SemSegTester(TesterBase):
                     with torch.no_grad():
                         pred_part = self.model(input_dict)["seg_logits"]  # (n, k)
                         pred_part = F.softmax(pred_part, -1)
+                        pred_part_prob = pred_part
+
                         if self.cfg.empty_cache:
                             torch.cuda.empty_cache()
                         bs = 0
                         for be in input_dict["offset"]:
                             pred[idx_part[bs:be], :] += pred_part[bs:be]
+                            prob[idx_part[bs:be], :] += pred_part_prob[bs:be]  # 累加概率
                             bs = be
 
                     logger.info(
@@ -206,6 +223,18 @@ class SemSegTester(TesterBase):
                             batch_num=len(fragment_list),
                         )
                     )
+
+                                # 保存概率
+                if "origin_segment" in data_dict.keys():
+                    assert "inverse" in data_dict.keys()
+                    prob = prob[data_dict["inverse"]]  # 如果有逆映射，也应用到概率上
+                
+                # 归一化概率 (因为是多片段累加的)
+                prob = prob / len(fragment_list)
+                np.save(prob_save_file, prob.cpu().numpy())  # 保存概率
+                
+                # 处理预测结果 (保持原有逻辑)
+
                 if self.cfg.data.test.type == "ScanNetPPDataset":
                     pred = pred.topk(3, dim=1)[1].data.cpu().numpy()
                 else:
