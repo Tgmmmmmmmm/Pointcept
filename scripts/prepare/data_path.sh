@@ -3,10 +3,10 @@
 
 # 设置运行参数
 export NUM_WORKERS=20
-export CODEBASE_DIR="$HOME/Project/Pointcept"
+export CODEBASE_DIR="$HOME/Pointcept"
 export CUDA_VISIBLE_DEVICES="0"
 export MAX_SWEEPS=10
-export DATA_ROOT="/media/tgm/TgM/dataset"
+export DATA_ROOT="$HOME/data/dataset"
 
 # 设置 ScanNet/ScanNet++ 相关路径
 export RAW_SCANNET_DIR="$DATA_ROOT/scannet/scannet"
