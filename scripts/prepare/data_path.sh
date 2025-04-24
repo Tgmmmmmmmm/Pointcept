@@ -32,16 +32,12 @@ echo "PROCESSED_NUSCENES_DIR=$PROCESSED_NUSCENES_DIR"
 echo "DATA_ROOT=$DATA_ROOT"
 
 
-# 连接数据集目录
-mkdir -p data
-# Scannet
-# PROCESSED_SCANNET_DIR: the directory of the processed ScanNet dataset.
-ln -s ${PROCESSED_SCANNET_DIR} ${CODEBASE_DIR}/data/scannet
-# PROCESSED_SCANNETPP_DIR: the directory of the processed ScanNet dataset.
-ln -s ${PROCESSED_SCANNETPP_DIR} ${CODEBASE_DIR}/data/scannetpp
-# PROCESSED_S3DIS_DIR: the directory of processed S3DIS dataset.
-ln -s ${PROCESSED_S3DIS_DIR} ${CODEBASE_DIR}/data/s3dis
-# SEMANTIC_KITTI_DIR: the directory of SemanticKITTI dataset.
-ln -s ${SEMANTIC_KITTI_DIR} ${CODEBASE_DIR}/data/semantic_kitti
-# PROCESSED_NUSCENES_DIR: the directory of processed nuScenes dataset (output dir).
-ln -s ${PROCESSED_NUSCENES_DIR} ${CODEBASE_DIR}/data/nuscenes
+# 创建基础目录
+mkdir -p ${CODEBASE_DIR}/data
+
+# 检查源目录是否存在，再创建链接
+[ -d "${PROCESSED_SCANNET_DIR}" ] && ln -sf "${PROCESSED_SCANNET_DIR}" "${CODEBASE_DIR}/data/scannet"
+[ -d "${PROCESSED_SCANNETPP_DIR}" ] && ln -sf "${PROCESSED_SCANNETPP_DIR}" "${CODEBASE_DIR}/data/scannetpp"
+[ -d "${PROCESSED_S3DIS_DIR}" ] && ln -sf "${PROCESSED_S3DIS_DIR}" "${CODEBASE_DIR}/data/s3dis"
+[ -d "${SEMANTIC_KITTI_DIR}" ] && ln -sf "${SEMANTIC_KITTI_DIR}" "${CODEBASE_DIR}/data/semantic_kitti"
+[ -d "${PROCESSED_NUSCENES_DIR}" ] && ln -sf "${PROCESSED_NUSCENES_DIR}" "${CODEBASE_DIR}/data/nuscenes"
