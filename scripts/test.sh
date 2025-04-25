@@ -94,7 +94,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - $FULL_CMD" >> "$RUN_LOG"
 
 
 echo " =========> RUN TASK <========="
-
+ulimit -n 65536
 #$PYTHON -u "$CODE_DIR"/tools/$TEST_CODE \
 # 构建命令字符串
 CMD="$PYTHON -u tools/$TEST_CODE \

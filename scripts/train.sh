@@ -102,7 +102,7 @@ mkdir -p "$EXP_DIR"
 echo "$(date '+%Y-%m-%d %H:%M:%S') - $FULL_CMD" >> "$RUN_LOG"
 
 echo " =========> RUN TASK <========="
-
+ulimit -n 65536
 # 构建命令字符串
 if [ "${WEIGHT}" = "None" ]
 then
