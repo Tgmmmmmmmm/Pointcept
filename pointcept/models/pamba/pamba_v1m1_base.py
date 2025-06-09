@@ -17,7 +17,7 @@ import spconv.pytorch as spconv
 import torch_scatter
 from timm.layers import DropPath
 import copy
-
+import time
 import inspect
 from mamba_ssm.modules.mamba_simple import Mamba
 from mamba_ssm.modules.mamba2 import Mamba2
@@ -424,13 +424,27 @@ class ConvMambaBlock(PointSequential):
         act_layer=nn.GELU,
         pre_norm=False,
         order_index=0,
+        bidirectional=True,
+        bidirectional_strategy="add",
+        bidirectional_weight_tie=True,
         cpe_indice_key=None,
     ):
         super().__init__()
         self.channels = channels
         self.pre_norm = pre_norm
 
-        self.spconv = PointSequential(
+        self.spconv1 = PointSequential(
+            spconv.SubMConv3d(
+                channels,
+                channels,
+                kernel_size=3,
+                bias=True,
+                indice_key=cpe_indice_key,
+            ),
+            nn.Linear(channels, channels),
+            norm_layer(channels),
+        )
+        self.spconv2 = PointSequential(
             spconv.SubMConv3d(
                 channels,
                 channels,
@@ -443,7 +457,13 @@ class ConvMambaBlock(PointSequential):
         )
 
         self.norm1 = PointSequential(norm_layer(channels))
-        self.bimamba = BiMambaMix(order_index=order_index, d_model=channels)
+        self.bimamba = BiMambaMix(
+            order_index=order_index,
+            d_model=channels,
+            bidirectional=bidirectional,
+            bidirectional_strategy=bidirectional_strategy,
+            bidirectional_weight_tie=bidirectional_weight_tie,
+        )
         self.norm2 = PointSequential(norm_layer(channels))
         self.mlp = PointSequential(
             MLP(
@@ -462,8 +482,8 @@ class ConvMambaBlock(PointSequential):
 
         # Local aggregation
         shortcut = point.feat
-        point = self.spconv(point)
-        point = self.spconv(point)
+        point = self.spconv1(point)
+        point = self.spconv2(point)
         point.feat = shortcut + point.feat
 
         # Global aggregation
@@ -681,6 +701,9 @@ class Pamba(PointModule):
         pre_norm=True,
         shuffle_orders=False,
         cls_mode=False,
+        bidirectional=True,
+        bidirectional_strategy="add",
+        bidirectional_weight_tie=True,
         pdnorm_bn=False,
         pdnorm_ln=False,
         pdnorm_decouple=True,
@@ -769,6 +792,9 @@ class Pamba(PointModule):
                         pre_norm=pre_norm,
                         order_index=i % len(self.order),
                         cpe_indice_key=f"stage{s}",
+                        bidirectional=bidirectional,
+                        bidirectional_strategy=bidirectional_strategy,
+                        bidirectional_weight_tie=bidirectional_weight_tie,
                     ),
                     name=f"block{i}",
                 )
@@ -813,13 +839,24 @@ class Pamba(PointModule):
                             pre_norm=pre_norm,
                             order_index=i % len(self.order),
                             cpe_indice_key=f"stage{s}",
+                            bidirectional=bidirectional,
+                            bidirectional_strategy=bidirectional_strategy,
+                            bidirectional_weight_tie=bidirectional_weight_tie,
                         ),
                         name=f"block{i}",
                     )
                 self.dec.add(module=dec, name=f"dec{s}")
 
     def forward(self, data_dict):
+
+        # start_time = time.perf_counter()
         point = Point(data_dict)
+        # end_time = time.perf_counter()
+
+        # # 计算耗时
+        # elapsed_time = end_time - start_time
+        # print(f"Point cloud init took {elapsed_time:.6f} seconds")
+
         # print("=" * 20 + " Point Info " + "=" * 20)
         # print(point.keys())
         # print("coord shape", point.coord.shape, point.coord[0])
@@ -829,7 +866,14 @@ class Pamba(PointModule):
         # print("batch shape", point.batch.shape, point.batch[0])
         # print("offset shape", point.offset.shape, point.offset[0])
 
+        # start_time = time.perf_counter()
         point.serialization(order=self.order)
+        # end_time = time.perf_counter()
+
+        # # 计算耗时
+        # elapsed_time = end_time - start_time
+        # print(f"Point cloud serialization took {elapsed_time:.6f} seconds")
+
         # print("=" * 20 + " After Serialization Info " + "=" * 20)
         # print(point.keys())
         # print(

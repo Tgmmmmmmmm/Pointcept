@@ -37,6 +37,9 @@ model = dict(
         pdnorm_adaptive=False,
         pdnorm_affine=True,
         pdnorm_conditions=("ScanNet", "S3DIS", "Structured3D"),
+        bidirectional=True,
+        bidirectional_strategy="add",
+        bidirectional_weight_tie=True,
     ),
     criteria=[
         dict(type="CrossEntropyLoss", loss_weight=1.0, ignore_index=-1),
@@ -46,7 +49,7 @@ model = dict(
 
 # scheduler settings
 epoch = 800
-optimizer = dict(type="AdamW", lr=0.006, weight_decay=0.05)
+optimizer = dict(type="AdamW", lr=0.003, weight_decay=0.05)
 scheduler = dict(
     type="OneCycleLR",
     max_lr=[0.006, 0.0006],
@@ -55,7 +58,7 @@ scheduler = dict(
     div_factor=10.0,
     final_div_factor=1000.0,
 )
-param_dicts = [dict(keyword="block", lr=0.0006)]
+param_dicts = [dict(keyword="block", lr=0.003)]
 
 # dataset settings
 dataset_type = "ScanNetDataset"
