@@ -1,0 +1,6 @@
+[submodule "libs/dwconv"]
+	path = libs/dwconv
+	url = https://github.com/octree-nn/dwconv.git
+[submodule "libs/flash-linear-attention"]
+	path = libs/flash-linear-attention
+	url = git@github.com:Tgmmmmmmmm/flash-linear-attention.git
