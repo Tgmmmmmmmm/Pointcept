@@ -134,6 +134,11 @@ class SemSegTester(TesterBase):
 
         save_path = os.path.join(self.cfg.save_path, "result")
         make_dirs(save_path)
+
+        # Create folder to save probs
+        prob_save_path = os.path.join(save_path, "probs")
+        make_dirs(prob_save_path)
+
         # create submit folder only on main process
         if (
             self.cfg.data.test.type == "ScanNetDataset"
@@ -173,6 +178,9 @@ class SemSegTester(TesterBase):
             segment = data_dict.pop("segment")
             data_name = data_dict.pop("name")
             pred_save_path = os.path.join(save_path, "{}_pred.npy".format(data_name))
+            prob_save_file = os.path.join(
+                prob_save_path, "{}_prob.npy".format(data_name)
+            )
             if os.path.isfile(pred_save_path):
                 logger.info(
                     "{}/{}: {}, loaded pred and label.".format(
@@ -184,6 +192,8 @@ class SemSegTester(TesterBase):
                     segment = data_dict["origin_segment"]
             else:
                 pred = torch.zeros((segment.size, self.cfg.data.num_classes)).cuda()
+                # Track the prediction count for each point
+                count = torch.zeros((segment.size, 1)).cuda()
                 for i in range(len(fragment_list)):
                     fragment_batch_size = 1
                     s_i, e_i = i * fragment_batch_size, min(
@@ -202,6 +212,7 @@ class SemSegTester(TesterBase):
                         bs = 0
                         for be in input_dict["offset"]:
                             pred[idx_part[bs:be], :] += pred_part[bs:be]
+                            count[idx_part[bs:be]] += 1
                             bs = be
 
                     logger.info(
@@ -213,6 +224,10 @@ class SemSegTester(TesterBase):
                             batch_num=len(fragment_list),
                         )
                     )
+                prob = pred / (
+                    count + 1e-6
+                )  # Average probabilities (avoid division by zero)
+                np.save(prob_save_file, prob.cpu().numpy())  # Save probabilities
                 if self.cfg.data.test.type == "ScanNetPPDataset":
                     pred = pred.topk(3, dim=1)[1].data.cpu().numpy()
                 else:
