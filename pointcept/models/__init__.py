@@ -12,6 +12,9 @@ from .spvcnn import *
 from .octformer import *
 from .oacnns import *
 
+# octmamba需要特殊的双向mamba
+# from .octmamba import *
+
 # from .swin3d import *
 
 # Semantic Segmentation
