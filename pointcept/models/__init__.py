@@ -15,6 +15,9 @@ from .oacnns import *
 # octmamba需要特殊的双向mamba
 # from .octmamba import *
 
+# 需要安装mamba
+# from .pamba import *
+
 # from .swin3d import *
 
 # Semantic Segmentation

@@ -4,3 +4,6 @@
 [submodule "libs/flash-linear-attention"]
 	path = libs/flash-linear-attention
 	url = git@github.com:Tgmmmmmmmm/flash-linear-attention.git
+[submodule "libs/mamba"]
+	path = libs/mamba
+	url = git@github.com:state-spaces/mamba.git
