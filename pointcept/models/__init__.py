@@ -11,7 +11,9 @@ from .stratified_transformer import *
 from .spvcnn import *
 from .octformer import *
 from .oacnns import *
+
 from .point_linear_attention import *
+from .point_linear_attention_v2 import *
 
 # octmamba需要特殊的双向mamba
 # from .octmamba import *
