@@ -2,6 +2,7 @@ weight = None  # path to model weight
 resume = False  # whether to resume training process
 evaluate = True  # evaluate after each epoch training process
 test_only = False  # test process
+save_probs = False
 
 seed = None  # train process will init a random seed and record
 save_path = "exp/default"
@@ -20,9 +21,9 @@ empty_cache = False
 empty_cache_per_epoch = False
 find_unused_parameters = False
 
-enable_wandb = False
+enable_wandb = True
 wandb_project = "pointcept"  # custom your project name e.g. Sonata, PTv3
-wandb_key = None  # wandb token, default is None. If None, login with `wandb login` in your terminal
+wandb_key = "d3a52adf9da1d4dcb71cccb8fdfef64f32f61e1e"  # wandb token, default is None. If None, login with `wandb login` in your terminal
 
 mix_prob = 0
 param_dicts = None  # example: param_dicts = [dict(keyword="block", lr_scale=0.1)]
