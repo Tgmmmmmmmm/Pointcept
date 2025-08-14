@@ -20,7 +20,7 @@ def encode(grid_coord, batch=None, depth=16, order="z", rule_matrix=None):
     elif order == "diy":
         assert rule_matrix is not None
         code = diy_order_encode(grid_coord, rule_matrix, depth=depth)
-    elif order == " diy-trans":
+    elif order == "diy-trans":
         assert rule_matrix is not None
         code = diy_order_encode(grid_coord[:, [1, 0, 2]], rule_matrix, depth=depth)
     else:
