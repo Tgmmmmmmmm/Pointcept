@@ -5,8 +5,8 @@ from pointcept.datasets.preprocessing.scannet.meta_data.scannet200_constants imp
 _base_ = ["../_base_/default_runtime.py"]
 
 # misc custom setting
-batch_size = 12  # bs: total bs in all gpus
-num_worker = 24
+batch_size = 4  # bs: total bs in all gpus
+num_worker = 8
 mix_prob = 0.8
 empty_cache = False
 enable_amp = True
@@ -56,7 +56,7 @@ model = dict(
 )
 
 # scheduler settings
-epoch = 800
+epoch = 100
 optimizer = dict(type="AdamW", lr=0.006, weight_decay=0.05)
 scheduler = dict(
     type="OneCycleLR",
