@@ -19,7 +19,7 @@ model = dict(
     backbone=dict(
         type="PT-v3m1",
         in_channels=6,
-        order=["z", "z-trans", "hilbert", "hilbert-trans"],
+        order=["diy","diy-trans","z", "z-trans", "hilbert", "hilbert-trans"],
         stride=(2, 2, 2, 2),
         enc_depths=(2, 2, 2, 6, 2),
         enc_channels=(32, 64, 128, 256, 512),
@@ -56,7 +56,7 @@ model = dict(
 )
 
 # scheduler settings
-epoch = 100
+epoch = 800
 optimizer = dict(type="AdamW", lr=0.006, weight_decay=0.05)
 scheduler = dict(
     type="OneCycleLR",
