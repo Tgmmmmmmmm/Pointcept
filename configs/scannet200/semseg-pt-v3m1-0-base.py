@@ -5,7 +5,7 @@ from pointcept.datasets.preprocessing.scannet.meta_data.scannet200_constants imp
 _base_ = ["../_base_/default_runtime.py"]
 
 # misc custom setting
-batch_size = 8  # bs: total bs in all gpus
+batch_size = 12  # bs: total bs in all gpus
 num_worker = 64
 mix_prob = 0.8
 empty_cache = False
@@ -20,7 +20,7 @@ model = dict(
     backbone=dict(
         type="PT-v3m1",
         in_channels=6,
-        order=["diy","diy-trans","z", "z-trans", "hilbert", "hilbert-trans"],
+        order=["diy","diy-trans"],
         stride=(2, 2, 2, 2),
         enc_depths=(2, 2, 2, 6, 2),
         enc_channels=(32, 64, 128, 256, 512),
