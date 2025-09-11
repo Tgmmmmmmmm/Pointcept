@@ -5,8 +5,8 @@ from pointcept.datasets.preprocessing.scannet.meta_data.scannet200_constants imp
 _base_ = ["../_base_/default_runtime.py"]
 
 # misc custom setting
-batch_size = 8  # bs: total bs in all gpus
-num_worker = 64
+batch_size = 16  # bs: total bs in all gpus
+num_worker = 48
 mix_prob = 0.8
 empty_cache = False
 enable_amp = True

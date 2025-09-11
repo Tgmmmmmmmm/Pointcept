@@ -698,7 +698,7 @@ class PointTransformerV3(PointModule):
 
     def forward(self, data_dict):
         point = Point(data_dict)
-        rule_matrix = torch.tensor([[1, 1, 1],[0, 1, 1],[0, 0, 1]], dtype=torch.int32)
+        rule_matrix = torch.tensor([[1, 1, 1],[0, 1, 1],[1, 0, 1]], dtype=torch.int32)
         point.serialization(order=self.order, shuffle_orders=self.shuffle_orders,rule_matrix=rule_matrix)
         point.sparsify()
 
